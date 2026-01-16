@@ -1,0 +1,75 @@
+{
+  // components.json
+  //
+  // Configuration file for shadcn/ui component library.
+  // This file tells shadcn/ui where to install components and how to style them.
+  
+  // Schema URL for validation
+  // This helps IDEs validate the JSON structure
+  "$schema": "https://ui.shadcn.com/schema.json",
+  
+  // UI style preset
+  // "new-york" - modern, clean style with rounded corners
+  // Other options: "default"
+  "style": "new-york",
+  
+  // React Server Components support
+  // true - components are compatible with Next.js Server Components
+  "rsc": true,
+  
+  // TypeScript support
+  // true - components use TypeScript (.tsx files)
+  "tsx": true,
+  
+  // Tailwind CSS configuration
+  "tailwind": {
+    // Tailwind config file path (empty = use default)
+    "config": "",
+    
+    // Global CSS file path
+    // Where Tailwind CSS is imported
+    "css": "app/globals.css",
+    
+    // Base color for components
+    // "zinc" - neutral gray color palette
+    // Other options: "slate", "stone", "gray", "neutral", "red", "rose", etc.
+    "baseColor": "zinc",
+    
+    // Use CSS variables for theming
+    // true - uses CSS variables (allows easy theme switching)
+    "cssVariables": true,
+    
+    // CSS class prefix
+    // "" - no prefix (default)
+    // Could be "tw-" if you want prefixed classes
+    "prefix": ""
+  },
+  
+  // Icon library
+  // "lucide" - Lucide React icon library
+  // Components will use icons from this library
+  "iconLibrary": "lucide",
+  
+  // Path aliases for imports
+  // These match the paths in tsconfig.json
+  "aliases": {
+    // @/components - components folder
+    "components": "@/components",
+    
+    // @/lib/utils - utility functions (cn function)
+    "utils": "@/lib/utils",
+    
+    // @/components/ui - UI components folder
+    "ui": "@/components/ui",
+    
+    // @/lib - lib folder
+    "lib": "@/lib",
+    
+    // @/hooks - custom React hooks folder
+    "hooks": "@/hooks"
+  },
+  
+  // Component registries
+  // Empty object means using default shadcn/ui registry
+  "registries": {}
+}

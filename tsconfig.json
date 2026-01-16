@@ -1,34 +1,97 @@
 {
+  // TypeScript Configuration File
+  //
+  // This file configures TypeScript compiler options for the project.
+  // TypeScript uses this to understand how to compile and type-check your code.
+  
   "compilerOptions": {
+    // Target JavaScript version
+    // ES2017 - modern JavaScript features (async/await, etc.)
     "target": "ES2017",
+    
+    // Library files to include
+    // dom - browser DOM types (document, window, etc.)
+    // dom.iterable - iterable DOM types
+    // esnext - latest ECMAScript features
     "lib": ["dom", "dom.iterable", "esnext"],
+    
+    // Allow JavaScript files in the project
+    // true - allows .js files alongside .ts files
     "allowJs": true,
+    
+    // Skip type checking of declaration files
+    // true - faster compilation (skips checking .d.ts files)
     "skipLibCheck": true,
+    
+    // Enable strict type checking
+    // true - enables all strict type checking options
+    // Catches more potential errors at compile time
     "strict": true,
+    
+    // Don't emit output files
+    // true - TypeScript only type-checks, doesn't generate .js files
+    // Next.js handles compilation
     "noEmit": true,
+    
+    // Enable ES module interop
+    // true - allows importing CommonJS modules as ES modules
     "esModuleInterop": true,
+    
+    // Module system
+    // esnext - use latest ES module features
     "module": "esnext",
+    
+    // Module resolution strategy
+    // bundler - resolve modules like a bundler (webpack, etc.)
+    // Works well with Next.js
     "moduleResolution": "bundler",
+    
+    // Allow importing JSON files
+    // true - allows: import data from "./data.json"
     "resolveJsonModule": true,
+    
+    // Ensure each file can be transpiled independently
+    // true - each file can be compiled without dependencies
     "isolatedModules": true,
+    
+    // JSX transformation
+    // react-jsx - use React 17+ JSX transform (no need to import React)
     "jsx": "react-jsx",
+    
+    // Enable incremental compilation
+    // true - TypeScript saves compilation info for faster subsequent builds
     "incremental": true,
+    
+    // TypeScript plugins
     "plugins": [
       {
+        // Next.js plugin
+        // Provides Next.js-specific type checking
         "name": "next"
       }
     ],
+    
+    // Path aliases
+    // Allows importing with @/ prefix instead of relative paths
     "paths": {
+      // @/* maps to ./* (project root)
+      // Example: import { prisma } from "@/lib" instead of "../../lib"
       "@/*": ["./*"]
     }
   },
+  
+  // Files to include in compilation
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "next-env.d.ts",           // Next.js type definitions
+    "**/*.ts",                  // All TypeScript files
+    "**/*.tsx",                 // All TypeScript React files
+    ".next/types/**/*.ts",      // Next.js generated types
+    ".next/dev/types/**/*.ts",  // Next.js dev types
+    "**/*.mts"                  // All .mts files
   ],
-  "exclude": ["node_modules"]
+  
+  // Files/folders to exclude from compilation
+  "exclude": [
+    "node_modules"  // Don't type-check node_modules
+  ]
 }
