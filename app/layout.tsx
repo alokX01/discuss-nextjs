@@ -1,63 +1,66 @@
-// Import global CSS styles
-// globals.css - contains Tailwind CSS imports and global styles
+// app/layout.tsx
+
+// Global CSS file
+// This imports Tailwind base styles and any global styles
 import "./globals.css";
 
-// Import Providers component
-// Providers - wraps the app with NextAuth SessionProvider
-// SessionProvider provides session context to all components
+// Providers component
+// This wraps the entire app with NextAuth SessionProvider
 import Providers from "@/components/providers";
 
-// Import Header component
-// Header - main navigation header (logo, search, auth buttons)
+// Global Header component
+// Header is shown on every page
 import Header from "@/components/header";
 
 /**
- * RootLayout Component (Server Component)
- * 
- * This is the root layout component for the entire application.
- * All pages are wrapped by this layout.
- * 
- * This is a Server Component - it runs on the server.
- * Layout components are typically Server Components for better performance.
- * 
- * Structure:
- * - html element with lang attribute
- * - body element
- * - Providers wrapper (provides session context)
- * - Container div (centers content, max width)
- * - Header component
- * - Page content (children)
- * 
- * @param children - The page content (injected by Next.js)
+ * RootLayout (Server Component)
+ *
+ * This is the root layout of the application.
+ * Every page (home, topic, post, search, etc.) is rendered inside this.
+ *
+ * Why Server Component?
+ * - Layouts do not need browser interactivity
+ * - Runs on server → better performance
+ * - Cleaner architecture
  */
 export default function RootLayout({
-  children,  // children prop contains the page content
+  children,
 }: {
-  children: React.ReactNode;  // TypeScript type for children (any React node)
+  // `children` represents the page content
+  // Example: Home page, Topic page, Post page
+  children: React.ReactNode;
 }) {
   return (
-    // HTML root element
-    // lang="en" - specifies page language (English) for accessibility
     <html lang="en">
-      {/* Body element - contains all visible content */}
-      <body>
-        {/* Providers wrapper - provides React context to child components */}
-        {/* SessionProvider inside Providers gives all components access to session */}
+      {/* 
+        Body element
+        - min-h-screen: page always fills full screen height
+        - bg-gray-50: light neutral background (common in forums)
+      */}
+      <body className="min-h-screen bg-gray-50">
+        {/*
+          Providers:
+          - Makes authentication session available everywhere
+          - Required for useSession(), signIn(), signOut()
+        */}
         <Providers>
-          {/* Main content container */}
-          {/* container - centers content horizontally */}
-          {/* mx-auto - margin left and right auto (centers the container) */}
-          {/* max-w-6xl - maximum width (72rem = 1152px) - prevents content from being too wide */}
-          <div className="container mx-auto max-w-6xl">
-            {/* Header component - navigation bar */}
-            {/* Appears at the top of every page */}
-            <Header />
-            
-            {/* Page content */}
-            {/* children - contains the actual page content (different for each route) */}
-            {/* This is where Next.js injects the page component */}
+          {/*
+            Header is FULL WIDTH
+            - Navigation should always span the full screen
+            - Better UX for apps like Reddit / Discuss
+          */}
+          <Header />
+
+          {/*
+            Main content area
+            - mx-auto centers content
+            - max-w-7xl keeps content readable but wide
+            - px-6 adds horizontal padding on small screens
+            - pt-6 creates spacing below header
+          */}
+          <main className="mx-auto max-w-7xl px-6 pt-6">
             {children}
-          </div>
+          </main>
         </Providers>
       </body>
     </html>

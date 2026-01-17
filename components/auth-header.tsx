@@ -1,68 +1,99 @@
-// "use client" directive - this is a Client Component
-// Client Components run in the browser and can use React hooks
-// This component needs to be a Client Component because it uses useSession hook
 "use client";
 
-// Import NextAuth React hooks and functions
-// useSession - hook to get current user session (runs in browser)
-// signIn - function to trigger sign in (opens OAuth provider)
-// signOut - function to sign out the current user
+// Auth utilities
 import { useSession, signIn, signOut } from "next-auth/react";
 
-// Import Button UI component
-// Button - clickable button component from shadcn/ui
+// UI
 import { Button } from "@/components/ui/button";
 
+// React
+import { useState } from "react";
+
+// Next.js navigation
+import Link from "next/link";
+
 /**
- * AuthHeader Component (Client Component)
- * 
- * Displays authentication button (Sign In or Sign Out) based on user's login status.
- * 
- * This is a Client Component because it uses:
- * - useSession hook (runs in browser to check authentication)
- * - onClick event handlers (client-side interactivity)
- * 
- * Features:
- * - Shows "Sign In" button if user is not logged in
- * - Shows "Sign Out" button if user is logged in
- * - Handles sign in/out actions
+ * AuthHeader (Client Component)
+ *
+ * Dropdown options:
+ * - Home
+ * - Profile
+ * - Sign out
  */
 const AuthHeader = () => {
-  // useSession hook - gets the current user session
-  // Returns object with: { data: session, status: "loading" | "authenticated" | "unauthenticated" }
-  // We destructure to get just the session data
-  // session - contains user info if logged in, null if not logged in
   const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
 
-  // Conditional rendering - check if user is logged in
-  // If session exists (user is logged in)
-  if (session) {
+  /**
+   * User NOT logged in
+   */
+  if (!session || !session.user) {
     return (
-      // Sign Out button
-      // Button - UI component for button
-      // variant="outline" - outlined button style (border, transparent background)
-      // onClick - event handler that runs when button is clicked
-      // () => signOut() - arrow function that calls signOut function
-      // signOut() - NextAuth function that signs out the current user
-      <Button variant="outline" onClick={() => signOut()}>
-        Sign Out
+      <Button onClick={() => signIn("github")}>
+        Sign In
       </Button>
     );
   }
 
-  // If session doesn't exist (user is not logged in)
-  // Return Sign In button
+  /**
+   * User logged in
+   */
   return (
-    // Sign In button
-    // Button - UI component for button
-    // onClick - event handler that runs when button is clicked
-    // () => signIn("github") - arrow function that calls signIn with "github" provider
-    // signIn("github") - NextAuth function that opens GitHub OAuth login
-    <Button onClick={() => signIn("github")}>
-      Sign In
-    </Button>
+    <div className="relative">
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 rounded-md px-3 py-1.5 hover:bg-gray-100 transition"
+      >
+        {session.user.image && (
+          <img
+            src={session.user.image}
+            alt="User avatar"
+            className="h-7 w-7 rounded-full"
+          />
+        )}
+
+        <span className="text-sm font-medium text-gray-900">
+          {session.user.name}
+        </span>
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute right-0 mt-2 w-44 rounded-md border bg-white shadow-md overflow-hidden">
+
+          {/* Home */}
+          <Link
+            href="/"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Home
+          </Link>
+
+          {/* Profile */}
+          <Link
+            href="/profile"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Profile
+          </Link>
+
+          {/* Divider */}
+          <div className="h-px bg-gray-200" />
+
+          {/* Sign out */}
+          <button
+            onClick={() => signOut()}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+          >
+            Sign Out
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
-// Export component so it can be imported in other files
 export default AuthHeader;
