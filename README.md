@@ -84,3 +84,44 @@ Design philosophy:
 
 ---
 
+---
+
+## 🔑 GitHub OAuth Setup (Required for Local Development)
+
+This project uses **GitHub OAuth** via **NextAuth**.  
+If you clone this repository, you must create your own GitHub OAuth App.
+
+### Create GitHub OAuth App
+1. Go to https://github.com/settings/developers  
+2. Click **New OAuth App**
+3. Fill details:
+
+Application name: Discuss (Local)
+Homepage URL: http://localhost:3000
+
+Authorization callback URL: http://localhost:3000/api/auth/callback/github
+
+
+4. Copy **Client ID** and **Client Secret**
+
+---
+
+## 🖥️ Clone & Run Locally
+
+### 1️⃣ Clone Repository
+```bash
+git clone https://github.com/alokX01/discuss-nextjs.git
+cd discuss-nextjs
+npm install
+
+Create a .env file in the root directory:
+
+DATABASE_URL=your_postgresql_pooling_url
+DIRECT_URL=your_direct_postgresql_url
+
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+
+AUTH_SECRET=any_random_secure_string
+NEXTAUTH_URL=http://localhost:3000
+
