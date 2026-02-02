@@ -1,156 +1,85 @@
-// components/posts/post-edit-form.tsx
-//
-// Client-side form for editing an existing post.
-// This is shown only to the post owner and opens inside a modal dialog.
-
 "use client";
 
-// React hook for handling server actions with form state
+import { useState } from "react";
 import { useActionState } from "react";
-
-// UI components (shadcn/ui)
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-
-// Icon for edit action
 import { Pencil } from "lucide-react";
-
-// Server action that updates the post
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 import { editPost } from "@/app/action/edit-post";
 
-/**
- * Props definition
- *
- * postId  → which post to edit
- * slug    → topic slug (used for redirect after edit)
- * title   → existing title (prefilled)
- * content → existing content (prefilled)
- */
-type PostEditFormProps = {
+type Props = {
   postId: string;
   slug: string;
   title: string;
   content: string;
 };
 
-/**
- * PostEditForm (Client Component)
- *
- * Responsibility:
- * - Open edit form in modal
- * - Prefill existing post data
- * - Submit updates via server action
- *
- * Why client component?
- * - Uses modal interaction
- * - Handles form submission state
- */
-const PostEditForm = ({
-  postId,
-  slug,
-  title,
-  content,
-}: PostEditFormProps) => {
+const PostEditForm = ({ postId, slug, title, content }: Props) => {
+  const [open, setOpen] = useState(false);
 
-  /**
-   * Wrapper around server action
-   *
-   * editPost expects:
-   * (postId, slug, prevState, formData)
-   *
-   * useActionState expects:
-   * (prevState, formData)
-   *
-   * So we bind postId & slug here.
-   */
-  const editPostAction = (prevState: any, formData: FormData) => {
-    return editPost(postId, slug, prevState, formData);
+  const editAction = async (prevState: any, formData: FormData) => {
+    const result = await editPost(postId, slug, prevState, formData);
+    return result;
   };
 
-  // Form state + submit handler
-  const [formState, formAction] = useActionState(editPostAction, {
-    errors: {},
-  });
+  const [formState, formAction] = useActionState(editAction, { errors: {} });
 
   return (
-    <Dialog>
-      {/* Trigger button (small, subtle) */}
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1">
-          <Pencil className="h-4 w-4" />
-          Edit
-        </Button>
-      </DialogTrigger>
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="text-sm text-gray-600 hover:text-blue-600 flex items-center gap-1"
+      >
+        <Pencil className="h-3 w-3" />
+        Edit
+      </button>
 
-      {/* Modal content */}
-      <DialogContent className="max-w-md">
-        <form action={formAction}>
-          {/* Modal header */}
-          <DialogHeader>
-            <DialogTitle>Edit post</DialogTitle>
-          </DialogHeader>
+      {open && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6">
+            <h2 className="text-lg font-bold mb-4">Edit Post</h2>
 
-          {/* Form fields */}
-          <div className="space-y-4 py-4">
-            {/* Title */}
-            <div className="space-y-1">
-              <Label htmlFor="edit-title">Title</Label>
-              <Input
-                id="edit-title"
-                name="title"
-                defaultValue={title}
-              />
-              {formState.errors.title && (
-                <p className="text-sm text-red-600">
-                  {formState.errors.title}
-                </p>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="space-y-1">
-              <Label htmlFor="edit-content">Content</Label>
-              <Textarea
-                id="edit-content"
-                name="content"
-                defaultValue={content}
-                rows={6}
-                className="leading-relaxed"
-              />
-              {formState.errors.content && (
-                <p className="text-sm text-red-600">
-                  {formState.errors.content}
-                </p>
-              )}
-            </div>
-
-            {/* General error */}
-            {formState.errors.formError && (
-              <div className="rounded border border-red-300 bg-red-50 p-2 text-sm text-red-700">
-                {formState.errors.formError}
+            <form action={formAction} className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Title</label>
+                <Input name="title" defaultValue={title} className="mt-1" />
+                {formState.errors.title && (
+                  <p className="text-xs text-red-600 mt-1">{formState.errors.title.join(", ")}</p>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Footer actions */}
-          <DialogFooter>
-            <Button type="submit" className="w-full">
-              Save changes
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              <div>
+                <label className="text-sm font-medium">Content</label>
+                <Textarea name="content" defaultValue={content} rows={6} className="mt-1" />
+                {formState.errors.content && (
+                  <p className="text-xs text-red-600 mt-1">{formState.errors.content.join(", ")}</p>
+                )}
+              </div>
+
+              {formState.errors.formError && (
+                <p className="text-xs text-red-600">{formState.errors.formError.join(", ")}</p>
+              )}
+
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="px-4 py-2 text-sm hover:bg-gray-100 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

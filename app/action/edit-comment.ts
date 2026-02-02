@@ -3,37 +3,30 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Post } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
-const createPostSchema = z.object({
-  title: z
-    .string()
-    .min(3, "Title must be at least 3 characters")
-    .max(200, "Title must be less than 200 characters"),
+const editCommentSchema = z.object({
   content: z
     .string()
-    .min(10, "Content must be at least 10 characters")
-    .max(5000, "Content must be less than 5000 characters"),
+    .min(1, "Comment cannot be empty")
+    .max(2000, "Comment must be less than 2000 characters"),
 });
 
-type CreatePostFormState = {
+type EditCommentState = {
   errors: {
-    title?: string[];
     content?: string[];
     formError?: string[];
   };
 };
 
-export const createPost = async (
-  slug: string,
-  prevState: CreatePostFormState,
+export const editComment = async (
+  commentId: string,
+  postId: string,
+  prevState: EditCommentState,
   formData: FormData
-): Promise<CreatePostFormState> => {
-  const result = createPostSchema.safeParse({
-    title: formData.get("title"),
+): Promise<EditCommentState> => {
+  const result = editCommentSchema.safeParse({
     content: formData.get("content"),
   });
 
@@ -53,27 +46,41 @@ export const createPost = async (
     };
   }
 
-  const topic = await prisma.topic.findFirst({
-    where: { slug },
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: {
+      userId: true,
+      post: {
+        select: {
+          topic: {
+            select: { slug: true },
+          },
+        },
+      },
+    },
   });
 
-  if (!topic) {
+  if (!comment) {
     return {
       errors: {
-        formError: ["Topic not found"],
+        formError: ["Comment not found"],
       },
     };
   }
 
-  let post: Post;
+  if (comment.userId !== session.user.id) {
+    return {
+      errors: {
+        formError: ["You can only edit your own comments"],
+      },
+    };
+  }
 
   try {
-    post = await prisma.post.create({
+    await prisma.comment.update({
+      where: { id: commentId },
       data: {
-        title: result.data.title,
         content: result.data.content,
-        userId: session.user.id,
-        topicId: topic.id,
       },
     });
   } catch (error: unknown) {
@@ -86,12 +93,15 @@ export const createPost = async (
     } else {
       return {
         errors: {
-          formError: ["Failed to create post"],
+          formError: ["Failed to update comment"],
         },
       };
     }
   }
 
-  revalidatePath(`/topic/${slug}`);
-  redirect(`/topic/${slug}/posts/${post.id}`);
+  revalidatePath(`/topic/${comment.post.topic.slug}/posts/${postId}`);
+
+  return {
+    errors: {},
+  };
 };

@@ -1,165 +1,90 @@
 "use client";
 
-// React hooks
-// useState  -> controls open / close state of form
-// useEffect -> reacts to form submission result
-import React, { useState, useEffect } from "react";
-
-// useActionState
-// Used to connect form submission with a Server Action
-// Manages loading + error state returned from the server
-import { useActionState } from "react";
-
-// UI components
-import { Button } from "../ui/button";
+import { useActionState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Textarea } from "../ui/textarea";
-
-// Server Action to create a comment
+import { Button } from "../ui/button";
 import { createComment } from "@/app/action/create-comment";
+import { toast } from "sonner";
 
-/**
- * Props for CommentCreateForm
- *
- * postId:
- * - ID of the post this comment belongs to
- *
- * parentId:
- * - ID of parent comment (only present for replies)
- *
- * startOpen:
- * - If true, form is visible by default
- * - Used for top-level comment forms
- */
 type CommentCreateFormProps = {
   postId: string;
   parentId?: string;
-  startOpen?: boolean;
+  commentOwnerId?: string;
 };
 
-/**
- * CommentCreateForm (Client Component)
- *
- * Responsibility:
- * - Create new comments and replies
- * - Handle form visibility
- * - Display validation errors
- *
- * Why Client Component?
- * - Uses state
- * - Uses browser-only hooks
- * - Handles form interaction
- */
-const CommentCreateForm: React.FC<CommentCreateFormProps> = ({
-  postId,
-  parentId,
-  startOpen,
-}) => {
-  /**
-   * Controls whether the form is visible
-   */
-  const [open, setOpen] = useState(startOpen ?? false);
+const CommentCreateForm = ({ postId, parentId, commentOwnerId }: CommentCreateFormProps) => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const hasSubmitted = useRef(false);
 
-  /**
-   * Wrapper for server action
-   *
-   * createComment expects:
-   * - params object
-   * - previous state
-   * - form data
-   *
-   * This wrapper injects postId and parentId automatically
-   */
-  const createCommentWithParams = (
-    prevState: any,
-    formData: FormData
-  ) => {
-    return createComment(
-      { postId, parentId },
-      prevState,
-      formData
-    );
+  const createCommentAction = (prevState: any, formData: FormData) => {
+    hasSubmitted.current = true;
+    return createComment({ postId, parentId }, prevState, formData);
   };
 
-  /**
-   * useActionState
-   *
-   * formState:
-   * - contains validation errors returned from server
-   *
-   * formAction:
-   * - attached to <form action={formAction}>
-   */
-  const [formState, formAction] = useActionState(
-    createCommentWithParams,
-    { errors: {} }
-  );
+  const [formState, formAction] = useActionState(createCommentAction, { errors: {} });
 
-  /**
-   * Side effect after successful submission
-   *
-   * When:
-   * - no validation errors
-   * - form was open
-   *
-   * Result:
-   * - Server Action revalidates path
-   * - UI refreshes automatically
-   */
   useEffect(() => {
     if (
+      hasSubmitted.current &&
       formState.errors &&
-      Object.keys(formState.errors).length === 0 &&
-      open
+      Object.keys(formState.errors).length === 0
     ) {
-      // No manual reset needed
+      toast.success(parentId ? "Reply posted" : "Comment posted");
+      formRef.current?.reset();
+      hasSubmitted.current = false;
     }
-  }, [formState, open]);
+  }, [formState.errors, parentId]);
+
+  // Hide if replying to own comment
+  if (parentId && session?.user?.id === commentOwnerId) {
+    return null;
+  }
+
+  // Loading state
+  if (status === "loading") {
+    return <div className="h-24 bg-gray-50 rounded animate-pulse" />;
+  }
+
+  // Not logged in
+  if (!session) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-4 text-center">
+        <p className="text-sm text-gray-600 mb-2">Sign in to comment</p>
+        <button
+          onClick={() => router.push("/auth/login")}
+          className="text-sm text-blue-600 hover:underline font-medium"
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="mt-2">
-      {/* Reply button (shown only when form is closed) */}
-      {!startOpen && (
-        <Button
-          size="sm"
-          variant="link"
-          onClick={() => setOpen(!open)}
-          className="px-0 text-sm text-gray-600"
-        >
-          Reply
-        </Button>
+    <form ref={formRef} action={formAction} className="space-y-3">
+      <Textarea
+        name="content"
+        placeholder={parentId ? "Write a reply..." : "What are your thoughts?"}
+        className="resize-none"
+        rows={parentId ? 2 : 3}
+      />
+
+      {formState.errors.content && (
+        <p className="text-sm text-red-600">{formState.errors.content.join(", ")}</p>
       )}
 
-      {/* Comment form */}
-      {open && (
-        <form action={formAction} className="space-y-3">
-          {/* Comment textarea */}
-          <Textarea
-            name="content"
-            placeholder="Write your comment..."
-            className="resize-none bg-gray-50 focus-visible:ring-0"
-          />
-
-          {/* Field-level validation error */}
-          {formState.errors.content && (
-            <p className="text-sm text-red-600">
-              {formState.errors.content}
-            </p>
-          )}
-
-          {/* Form-level error */}
-          {formState.errors.formError && (
-            <div className="rounded border border-red-300 bg-red-50 p-2 text-sm text-red-700">
-              {formState.errors.formError}
-            </div>
-          )}
-
-          {/* Submit button */}
-          <Button size="sm" variant="secondary" type="submit">
-            Post
-          </Button>
-        </form>
+      {formState.errors.formError && (
+        <p className="text-sm text-red-600">{formState.errors.formError.join(", ")}</p>
       )}
-    </div>
+
+      <Button type="submit" size="sm">
+        {parentId ? "Reply" : "Comment"}
+      </Button>
+    </form>
   );
 };
 
