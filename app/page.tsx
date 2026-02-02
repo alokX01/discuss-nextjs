@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { Suspense } from "react";
 import TopicList from "@/components/topic/topic-list";
 import TopicCreateForm from "@/components/topic/topic-create-form";
