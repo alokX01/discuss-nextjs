@@ -35,6 +35,13 @@ export const editComment = async (
       errors: result.error.flatten().fieldErrors,
     };
   }
+  if(result.data.content.trim().length ===0) {
+    return {
+      errors: {
+        content: ["Comment cannot be empty"],
+      },
+    };
+  }
 
   const session = await getServerSession(authOptions);
 
