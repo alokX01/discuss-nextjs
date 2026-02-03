@@ -1,5 +1,4 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+
 
 import { Suspense } from "react";
 import TopicList from "@/components/topic/topic-list";
@@ -7,7 +6,9 @@ import TopicCreateForm from "@/components/topic/topic-create-form";
 import PostList from "@/components/posts/post-list";
 import { fetchTopPosts } from "@/lib/query/post";
 
+
 export default function HomePage() {
+  console.log("HomePage");
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
